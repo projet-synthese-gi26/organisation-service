@@ -1,20 +1,13 @@
 package com.yowyob.organisation_service.infrastructure.adapters.outbound.persistence.repositories;
 
-
-import com.yowyob.organisation_service.infrastructure.adapters.outbound.persistence.entities.association.OrganizationActor;
+import com.yowyob.organisation_service.infrastructure.adapters.outbound.persistence.entities.domain.OrganizationActor;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 public interface OrganizationActorRepository extends R2dbcRepository<OrganizationActor, UUID> {
 
-
-    Flux<OrganizationActor> findByActorId(UUID actorId);
-
-
-    Flux<OrganizationActor> findByOrganizationIdAndType(UUID organizationId, String type);
-
-
-    Mono<Void> deleteByOrganizationIdAndActorId(UUID organizationId, UUID actorId);
+    // This method belongs here because it queries the 'organization_actor' table
+    Flux<OrganizationActor> findByOrganizationIdAndActorId(UUID organizationId, UUID actorId);
+    
 }

@@ -1,0 +1,398 @@
+-- Extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- 1. ENTITES DE BASE ET STRUCTURE
+CREATE TABLE IF NOT EXISTS organization (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code VARCHAR(255) UNIQUE,
+    service VARCHAR(255),
+    business_actor_id UUID,
+    is_individual_business BOOLEAN,
+    email VARCHAR(255),
+    short_name VARCHAR(255),
+    long_name VARCHAR(255),
+    description TEXT,
+    logo_uri VARCHAR(255),
+    logo_id UUID,
+    website_url VARCHAR(255),
+    social_network TEXT,
+    business_registration_number VARCHAR(255),
+    tax_number VARCHAR(255),
+    capital_share NUMERIC,
+    ceo_name VARCHAR(255),
+    year_founded INTEGER,
+    keywords TEXT[],
+    number_of_employees INTEGER,
+    legal_form VARCHAR(255),
+    is_active BOOLEAN,
+    status VARCHAR(50),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS agency (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code VARCHAR(255) UNIQUE,
+    organization_id UUID,
+    owner_id UUID,
+    manager_id UUID,
+    name VARCHAR(255),
+    location VARCHAR(255),
+    description TEXT,
+    transferable BOOLEAN,
+    is_active BOOLEAN,
+    logo_uri VARCHAR(255),
+    logo_id UUID,
+    short_name VARCHAR(255),
+    long_name VARCHAR(255),
+    is_individual_business BOOLEAN,
+    is_headquarter BOOLEAN,
+    country VARCHAR(255),
+    city VARCHAR(255),
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION,
+    open_time VARCHAR(50),
+    close_time VARCHAR(50),
+    phone VARCHAR(50),
+    email VARCHAR(255),
+    whatsapp VARCHAR(50),
+    greeting_message TEXT,
+    average_revenue NUMERIC,
+    capital_share NUMERIC,
+    social_network TEXT,
+    tax_number VARCHAR(255),
+    registration_number VARCHAR(255),
+    keywords TEXT[],
+    is_public BOOLEAN,
+    is_business BOOLEAN,
+    total_affiliated_customers INTEGER,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+-- 2. ACTEURS (Stratégie Table-per-class selon tes entités)
+
+CREATE TABLE IF NOT EXISTS employee (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    organization_id UUID,
+    auth_user_id UUID,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    name VARCHAR(255),
+    phone_number VARCHAR(50),
+    email VARCHAR(255),
+    description TEXT,
+    role VARCHAR(255),
+    gender VARCHAR(50),
+    photo_uri VARCHAR(255),
+    photo_id UUID,
+    nationality VARCHAR(255),
+    birth_date DATE,
+    profession VARCHAR(255),
+    biography TEXT,
+    code VARCHAR(255),
+    is_manager BOOLEAN,
+    department VARCHAR(255),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS business_actor (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID,
+    auth_user_id UUID,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    name VARCHAR(255),
+    phone_number VARCHAR(50),
+    email VARCHAR(255),
+    description TEXT,
+    role VARCHAR(255),
+    code VARCHAR(255),
+    is_individual BOOLEAN,
+    is_available BOOLEAN,
+    is_verified BOOLEAN,
+    is_active BOOLEAN,
+    type VARCHAR(255),
+    qualifications TEXT[],
+    payment_methods TEXT[],
+    is_business BOOLEAN,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS customer (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    organization_id UUID,
+    auth_user_id UUID,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    name VARCHAR(255),
+    phone_number VARCHAR(50),
+    email VARCHAR(255),
+    code VARCHAR(255),
+    is_individual BOOLEAN,
+    is_verified BOOLEAN,
+    is_active BOOLEAN,
+    payment_method VARCHAR(255),
+    amount_paid NUMERIC,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS prospect (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    organization_id UUID,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    name VARCHAR(255),
+    phone_number VARCHAR(50),
+    email VARCHAR(255),
+    code VARCHAR(255),
+    transaction_id UUID,
+    payment_method VARCHAR(255),
+    amount_paid NUMERIC,
+    interest_level VARCHAR(50),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS provider (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    organization_id UUID,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    name VARCHAR(255),
+    phone_number VARCHAR(50),
+    email VARCHAR(255),
+    code VARCHAR(255),
+    contact_info TEXT,
+    address TEXT,
+    is_active BOOLEAN,
+    product_service_type VARCHAR(255),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS sales_person (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    organization_id UUID,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    name VARCHAR(255),
+    phone_number VARCHAR(50),
+    email VARCHAR(255),
+    code VARCHAR(255),
+    commission_rate DOUBLE PRECISION,
+    current_balance DOUBLE PRECISION,
+    credit DOUBLE PRECISION,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+-- 3. TIERS ET PARTENAIRES (B2B)
+
+CREATE TABLE IF NOT EXISTS third_party (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code VARCHAR(255),
+    organization_id UUID,
+    type VARCHAR(50),
+    legal_form VARCHAR(255),
+    unique_identification_number VARCHAR(255),
+    trade_registration_number VARCHAR(255),
+    name VARCHAR(255),
+    acronym VARCHAR(50),
+    long_name VARCHAR(255),
+    logo_uri VARCHAR(255),
+    logo_id UUID,
+    accounting_account_numbers TEXT[],
+    authorized_payment_methods TEXT[],
+    authorized_credit_limit NUMERIC,
+    max_discount_rate NUMERIC,
+    vat_subject BOOLEAN,
+    operations_balance NUMERIC,
+    opening_balance NUMERIC,
+    pay_term_number INTEGER,
+    pay_term_type VARCHAR(50),
+    third_party_family VARCHAR(255),
+    classification TEXT, -- JSON stocké en String ou type JSONB selon Postgres
+    tax_number VARCHAR(255),
+    loyalty_points INTEGER,
+    loyalty_points_used INTEGER,
+    loyalty_points_expired INTEGER,
+    enabled BOOLEAN,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+-- 4. DOMAINES ET ACTIVITÉS
+
+CREATE TABLE IF NOT EXISTS business_domain (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    code VARCHAR(255),
+    service VARCHAR(255),
+    parent_id UUID,
+    name VARCHAR(255),
+    image_uri VARCHAR(255),
+    image_id UUID,
+    type VARCHAR(255),
+    type_label VARCHAR(255),
+    description TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS proposed_activity (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    organization_id UUID,
+    type VARCHAR(255),
+    name VARCHAR(255),
+    rate NUMERIC,
+    description TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS certification (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    organization_id UUID,
+    type VARCHAR(255),
+    name VARCHAR(255),
+    description TEXT,
+    obtainement_date TIMESTAMP,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+-- 5. TRANSVERSE (ADRESSES, CONTACTS, INTERACTIONS)
+
+CREATE TABLE IF NOT EXISTS address (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    addressable_id UUID,
+    addressable_type VARCHAR(255),
+    type VARCHAR(50),
+    address_line_1 VARCHAR(255),
+    address_line_2 VARCHAR(255),
+    city VARCHAR(255),
+    state VARCHAR(255),
+    locality VARCHAR(255),
+    zip_code VARCHAR(20),
+    country_id UUID,
+    po_box VARCHAR(50),
+    neighbor_hood VARCHAR(255),
+    informal_description TEXT,
+    is_default BOOLEAN,
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS contact (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    contactable_id UUID,
+    contactable_type VARCHAR(255),
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    title VARCHAR(50),
+    email VARCHAR(255),
+    phone_number VARCHAR(50),
+    secondary_phone_number VARCHAR(50),
+    fax_number VARCHAR(50),
+    secondary_email VARCHAR(255),
+    is_email_verified BOOLEAN,
+    is_phone_number_verified BOOLEAN,
+    is_favorite BOOLEAN,
+    email_verified_at TIMESTAMP,
+    phone_verified_at TIMESTAMP,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS interaction (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    interaction_id UUID,
+    prospect_id UUID,
+    interaction_date TIMESTAMP,
+    notes TEXT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+-- 6. TABLES DE JOINTURE
+
+CREATE TABLE IF NOT EXISTS organization_actor (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    organization_id UUID,
+    actor_id UUID,
+    type VARCHAR(50),
+    is_active BOOLEAN,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS agency_affiliation (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    organization_id UUID,
+    agency_id UUID,
+    actor_id UUID,
+    type VARCHAR(50),
+    is_active BOOLEAN,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS organization_domain (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    organization_id UUID,
+    domain_id UUID,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);
+
+CREATE TABLE IF NOT EXISTS agency_domain (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
+    organization_id UUID,
+    agency_id UUID,
+    domain_id UUID,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    version BIGINT
+);

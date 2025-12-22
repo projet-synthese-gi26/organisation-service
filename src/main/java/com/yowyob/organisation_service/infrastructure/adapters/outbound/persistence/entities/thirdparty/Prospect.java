@@ -2,6 +2,7 @@ package com.yowyob.organisation_service.infrastructure.adapters.outbound.persist
 
 import com.yowyob.organisation_service.infrastructure.adapters.outbound.persistence.entities.actor.Actor;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 import java.math.BigDecimal;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @Table("prospect")
 public class Prospect extends Actor {
 

@@ -1,24 +1,28 @@
 package com.yowyob.organisation_service.infrastructure.adapters.outbound.persistence.entities.actor;
 
-import com.yowyob.organisation_service.infrastructure.adapters.outbound.persistence.entities.base_entity.BaseEntity;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
+import lombok.experimental.SuperBuilder; // On garde SuperBuilder UNIQUEMENT pour la hiérarchie Actor
+import org.springframework.data.annotation.*;
 import org.springframework.data.relational.core.mapping.Column;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
-public abstract class Actor extends BaseEntity {
+@SuperBuilder // Nécessaire ici car Actor a des enfants (Employee, etc.)
+@NoArgsConstructor
+@AllArgsConstructor
+public abstract class Actor {
+
+    @Id
+    private UUID id; // ID déplacé ici
 
     @Column("organization_id")
     private UUID organizationId;
 
     @Column("auth_user_id")
-    private UUID authUserId; // Lien avec l'API d'autnetification
+    private UUID authUserId;
 
     @Column("first_name")
     private String firstName;
@@ -32,11 +36,8 @@ public abstract class Actor extends BaseEntity {
     private String phoneNumber;
 
     private String email;
-
     private String description;
-
     private String role;
-
     private String gender;
 
     @Column("photo_uri")
@@ -51,9 +52,22 @@ public abstract class Actor extends BaseEntity {
     private LocalDate birthDate;
 
     private String profession;
-
     private String biography;
-
     private UUID[] addresses;
     private UUID[] contacts;
+
+    // --- Champs de l'ex-BaseEntity ---
+    @CreatedDate
+    @Column("created_at")
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column("updated_at")
+    private LocalDateTime updatedAt;
+
+    @Column("deleted_at")
+    private LocalDateTime deletedAt;
+
+    @Version
+    private Long version;
 }

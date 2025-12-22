@@ -1,6 +1,7 @@
 package com.yowyob.organisation_service.infrastructure.adapters.outbound.persistence.entities.actor;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -9,7 +10,7 @@ import org.springframework.data.relational.core.mapping.Table;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @Table("sales_person")
 public class SalesPerson extends Actor {
 

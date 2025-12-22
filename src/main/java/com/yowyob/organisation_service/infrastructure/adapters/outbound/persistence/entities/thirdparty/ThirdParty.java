@@ -1,23 +1,39 @@
 package com.yowyob.organisation_service.infrastructure.adapters.outbound.persistence.entities.thirdparty;
 
-
-
-import com.yowyob.organisation_service.infrastructure.adapters.outbound.persistence.entities.base_entity.BaseEntity;
 import lombok.*;
+import org.springframework.data.annotation.*;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Table("third_party")
-public class ThirdParty extends BaseEntity {
+public class ThirdParty {
 
+    @Id
+    private UUID id;
+
+    // --- Champs d'audit ---
+    @CreatedDate
+    @Column("created_at")
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column("updated_at")
+    private LocalDateTime updatedAt;
+
+    @Column("deleted_at")
+    private LocalDateTime deletedAt;
+
+    @Version
+    private Long version;
+
+    // --- Champs Métiers ---
     private String code;
 
     @Column("organization_id")
@@ -76,7 +92,7 @@ public class ThirdParty extends BaseEntity {
     @Column("third_party_family")
     private String thirdPartyFamily;
 
-    private String classification;
+    private String classification; // Stocké en String (JSON) ou JsonObject selon driver
 
     @Column("tax_number")
     private String taxNumber;
