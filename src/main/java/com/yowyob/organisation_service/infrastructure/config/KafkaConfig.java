@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
+import org.springframework.kafka.support.serializer.JsonSerializer;
 import reactor.kafka.sender.SenderOptions;
 
 import java.util.HashMap;
@@ -22,7 +23,11 @@ public class KafkaConfig {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, org.springframework.kafka.support.serializer.JsonSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+
+        // Empêche l'ajout de headers de type Java spécifiques (utile pour
+        // l'interopérabilité entre microservices)
+        props.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
 
         SenderOptions<String, Object> senderOptions = SenderOptions.create(props);
 

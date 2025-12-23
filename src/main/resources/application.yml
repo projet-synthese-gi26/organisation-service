@@ -1,0 +1,86 @@
+server:
+  port: 8080 # Port standard interne (exposé via Docker ou direct)
+
+spring:
+  application:
+    name: organisation-service
+  
+  # Désactive Docker Compose automatique (on gère l'infra manuellement ou via script)
+  docker:
+    compose:
+      enabled: false
+
+  # --- DATABASE (Local) ---
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/organisationdb
+    username: postgres
+    password: password
+    pool:
+      initial-size: 5
+      max-size: 20
+  
+  sql:
+    init:
+      mode: always # Initialise la DB via schema.sql
+
+  # --- REDIS (Local - Standalone) ---
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      # Pas de cluster en local
+
+  # --- KAFKA (Local) ---
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: organisation-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*" # Autorise la désérialisation de tous les packages
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+# --- MONITORING (Actuator - Comme le Template) ---
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# --- SWAGGER (SpringDoc) ---
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+    validator-url: none
+    url: /v3/api-docs
+
+# --- CONFIGS MÉTIER ---
+application:
+  kafka:
+    topics:
+      crm-interactions: crm-interactions
+      organization-events: organization-events
+      
+# --- RESILIENCE (Circuit Breaker - Comme le Template) ---
+resilience4j:
+  circuitbreaker:
+    instances:
+      external-service: # Exemple générique
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+        slidingWindowSize: 5

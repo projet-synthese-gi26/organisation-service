@@ -7,6 +7,7 @@ import com.yowyob.organisation_service.infrastructure.adapters.outbound.persiste
 import com.yowyob.organisation_service.infrastructure.adapters.outbound.persistence.repositories.ProspectRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,9 +29,13 @@ public class InteractionService {
     private final InteractionRepository interactionRepository;
     private final ProspectRepository prospectRepository;
     private final InteractionMapper mapper;
-    
-    // Le producer Kafka configuré dans KafkaConfig.java
+
+    // Le producer Kafka configuré
     private final ReactiveKafkaProducerTemplate<String, Object> kafkaTemplate;
+
+    // Injection du nom du topic depuis application.yml
+    @Value("${application.kafka.topics.crm-interactions}")
+    private String interactionTopic;
 
     @Transactional
     public Mono<InteractionDTO.Response> addInteraction(InteractionDTO.Request request) {
@@ -46,21 +51,30 @@ public class InteractionService {
                     return interactionRepository.save(entity);
                 })
                 .flatMap(saved -> {
-                    // --- EVÉNEMENT KAFKA ---
-                    String topic = "crm-interactions";
+                    // --- ENVOI KAFKA ---
+                    // On utilise l'ID du prospect comme Clé (pour garantir l'ordre dans les
+                    // partitions Kafka)
                     String key = saved.getProspectId().toString();
-                    // On envoie un objet simple pour l'exemple
+
+                    // Payload de l'événement
                     Map<String, Object> event = Map.of(
-                        "eventType", "NEW_INTERACTION",
-                        "prospectId", saved.getProspectId(),
-                        "interactionId", saved.getId(),
-                        "timestamp", LocalDateTime.now().toString()
-                    );
-                    
-                    return kafkaTemplate.send(topic, key, event)
-                            .doOnSuccess(result -> log.info("Kafka envoyé: offset {}", result.recordMetadata().offset()))
-                            .doOnError(e -> log.error("Erreur Kafka", e))
-                            // On ignore l'erreur Kafka pour ne pas bloquer la réponse API (ou on throw selon besoin)
+                            "eventType", "NEW_INTERACTION",
+                            "prospectId", saved.getProspectId(),
+                            "interactionId", saved.getId(),
+                            "noteExtract",
+                            saved.getNotes() != null
+                                    ? saved.getNotes().substring(0, Math.min(saved.getNotes().length(), 20))
+                                    : "",
+                            "timestamp", LocalDateTime.now().toString());
+
+                    log.info("Tentative d'envoi Kafka vers le topic : {}", interactionTopic);
+
+                    return kafkaTemplate.send(interactionTopic, key, event)
+                            .doOnSuccess(
+                                    result -> log.info("✅ Succès Kafka : Offset {}", result.recordMetadata().offset()))
+                            .doOnError(e -> log.error("❌ Erreur Kafka", e))
+                            // On continue même si Kafka échoue pour ne pas bloquer l'API (ou on peut
+                            // laisser l'erreur remonter)
                             .thenReturn(mapper.toResponse(saved));
                 });
     }

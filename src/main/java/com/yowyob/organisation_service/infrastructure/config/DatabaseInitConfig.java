@@ -20,22 +20,26 @@ public class DatabaseInitConfig {
     }
 
     @PostConstruct
-    public void init() throws Exception {
-        ClassPathResource resource = new ClassPathResource("schema.sql");
-        String sql = Files.lines(Paths.get(resource.getURI()))
-                .collect(Collectors.joining("\n"));
+    public void init() {
+        try {
+            ClassPathResource resource = new ClassPathResource("schema.sql");
+            // Lecture compatible Linux/Windows
+            String sql = new String(resource.getInputStream().readAllBytes());
 
-        String[] statements = sql.split(";");
+            // Découpage basique sur le point-virgule (Attention aux triggers/fonctions complexes)
+            String[] statements = sql.split(";");
 
-        Flux.fromArray(statements)
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .flatMap(s -> databaseClient.sql(s).then())
-                .subscribe(
-                        null,
-                        err -> System.err.println("Erreur lors de l'init DB : " + err),
-                        () -> System.out.println("Base initialisée avec succès")
-                );
+            Flux.fromArray(statements)
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .flatMap(s -> databaseClient.sql(s).then())
+                    .subscribe(
+                            null,
+                            err -> System.err.println("❌ Erreur init DB : " + err.getMessage()),
+                            () -> System.out.println("✅ Base de données initialisée avec succès (Tables créées)")
+                    );
+        } catch (Exception e) {
+            System.err.println("⚠️ Impossible de lire schema.sql : " + e.getMessage());
+        }
     }
 }
-

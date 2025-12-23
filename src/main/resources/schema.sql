@@ -396,3 +396,34 @@ CREATE TABLE IF NOT EXISTS agency_domain (
     deleted_at TIMESTAMP,
     version BIGINT
 );
+
+
+-- INDEX DE PERFORMANCE (CRITIQUE)
+
+-- Pour OrganizationService
+CREATE INDEX IF NOT EXISTS idx_agency_org_id ON agency(organization_id);
+
+-- Pour EmployeeService / RH
+CREATE INDEX IF NOT EXISTS idx_employee_org_id ON employee(organization_id);
+CREATE INDEX IF NOT EXISTS idx_employee_auth_user_id ON employee(auth_user_id);
+CREATE INDEX IF NOT EXISTS idx_business_actor_org_id ON business_actor(organization_id);
+CREATE INDEX IF NOT EXISTS idx_business_actor_auth_user_id ON business_actor(auth_user_id);
+
+-- Pour CRM / Tiers
+CREATE INDEX IF NOT EXISTS idx_customer_org_id ON customer(organization_id);
+CREATE INDEX IF NOT EXISTS idx_prospect_org_id ON prospect(organization_id);
+CREATE INDEX IF NOT EXISTS idx_third_party_org_id ON third_party(organization_id);
+CREATE INDEX IF NOT EXISTS idx_interaction_prospect_id ON interaction(prospect_id);
+
+-- Pour les domaines et activités
+CREATE INDEX IF NOT EXISTS idx_business_domain_parent_id ON business_domain(parent_id);
+CREATE INDEX IF NOT EXISTS idx_proposed_activity_org_id ON proposed_activity(organization_id);
+CREATE INDEX IF NOT EXISTS idx_certification_org_id ON certification(organization_id);
+
+-- Pour les tables polymorphiques (Address / Contact)
+CREATE INDEX IF NOT EXISTS idx_address_poly ON address(addressable_id, addressable_type);
+CREATE INDEX IF NOT EXISTS idx_contact_poly ON contact(contactable_id, contactable_type);
+
+-- Pour les tables de jointure
+CREATE INDEX IF NOT EXISTS idx_org_actor_ids ON organization_actor(organization_id, actor_id);
+CREATE INDEX IF NOT EXISTS idx_agency_aff_ids ON agency_affiliation(agency_id, actor_id);
