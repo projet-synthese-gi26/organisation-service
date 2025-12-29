@@ -16,9 +16,14 @@ spring:
     username: postgres
     password: password
     pool:
-      initial-size: 5
-      max-size: 20
-  
+      enabled: true
+      initial-size: 1
+      max-size: 5
+      max-idle-time: 30m
+      max-life-time: 10m
+      acquire-retry: 3
+      max-acquire-time: 30s
+      validation-query: SELECT 1
   sql:
     init:
       mode: always # Initialise la DB via schema.sql
