@@ -7,6 +7,7 @@ import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.util.List;
@@ -34,10 +35,16 @@ public class GlobalExceptionHandler {
 
     // Gestion des erreurs fonctionnelles (Not Found, etc.)
     @ExceptionHandler(ResponseStatusException.class)
-    public ProblemDetail handleResponseStatusException(ResponseStatusException ex) {
+    public Mono<ProblemDetail> handleResponseStatusException(ResponseStatusException ex) {
+        // Si c'est une 404 sur une ressource statique (comme swagger-ui), on laisse passer
+        // pour que Spring renvoie la page 404 standard HTML ou gère la redirection.
+        if (ex.getStatusCode().value() == 404) {
+             return Mono.error(ex); // On relance l'erreur pour que Spring WebFlux la gère nativement
+        }
+
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(ex.getStatusCode(), ex.getReason());
         problem.setTitle("Erreur Fonctionnelle");
-        return problem;
+        return Mono.just(problem);
     }
 
     // Gestion des erreurs inattendues
