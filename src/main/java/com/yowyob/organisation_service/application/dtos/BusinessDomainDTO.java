@@ -7,25 +7,33 @@ import java.util.UUID;
 
 public class BusinessDomainDTO {
 
-    @Schema(description = "Requête de création d'un domaine métier")
+    @Schema(name = "BusinessDomainRequest", description = "Requête de création d'un domaine métier")
     public record Request(
             @NotBlank(message = "Le code est obligatoire")
+            @Schema(example = "IT_DEV")
             String code,
 
             @Schema(description = "ID du domaine parent (pour sous-catégories)", nullable = true)
             UUID parentId,
 
             @NotBlank(message = "Le nom est obligatoire")
+            @Schema(example = "Développement Logiciel")
             String name,
 
-            String service, // Ex: "COMMERCE", "SANTE"
+            @Schema(description = "Macro-service associé", example = "IT_SERVICES")
+            String service, 
+            
+            @Schema(example = "SECTOR")
             String type,
+            
+            @Schema(example = "Secteur Numérique")
             String typeLabel,
+            
             String description,
             String imageUri
     ) {}
 
-    @Schema(description = "Réponse Domaine Métier")
+    @Schema(name = "BusinessDomainResponse", description = "Réponse Domaine Métier")
     public record Response(
             UUID id,
             String code,

@@ -8,32 +8,38 @@ import java.util.UUID;
 
 public class ProspectDTO {
 
-    @Schema(description = "Requête création Prospect")
-    public record Request(
-            @NotNull UUID organizationId,
-            String firstName,
-            String lastName,
-            String email,
-            String phoneNumber,
-            @Schema(description = "Niveau d'intérêt", example = "HOT", allowableValues = {"COLD", "WARM", "HOT"})
-            String interestLevel
-    ) {}
+        @Schema(name = "ProspectRequest", description = "Requête création Prospect")
+        public record Request(
+                        @NotNull UUID organizationId,
 
-    public record Response(
-            UUID id,
-            String code,
-            UUID organizationId,
-            String firstName,
-            String lastName,
-            String interestLevel,
-            
-            // Inclusion de l'historique
-            List<InteractionDTO.Response> interactions,
-            
-            // Relations standards
-            List<AddressDTO.Response> addresses,
-            List<ContactDTO.Response> contacts,
-            
-            LocalDateTime createdAt
-    ) {}
+                        @Schema(example = "Sarah") String firstName,
+
+                        @Schema(example = "Connor") String lastName,
+
+                        @Schema(example = "sarah@future.com") String email,
+
+                        String phoneNumber,
+
+                        @Schema(description = "Niveau d'intérêt", example = "HOT", allowableValues = {
+                                        "COLD", "WARM", "HOT" }) String interestLevel){
+        }
+
+        @Schema(name = "ProspectResponse", description = "Réponse Prospect avec historique")
+        public record Response(
+                        UUID id,
+                        String code,
+                        UUID organizationId,
+                        String firstName,
+                        String lastName,
+                        String interestLevel,
+
+                        // Inclusion de l'historique
+                        @Schema(description = "Historique des interactions") List<InteractionDTO.Response> interactions,
+
+                        // Relations standards
+                        List<AddressDTO.Response> addresses,
+                        List<ContactDTO.Response> contacts,
+
+                        LocalDateTime createdAt) {
+        }
 }

@@ -7,19 +7,25 @@ import java.util.UUID;
 
 public class AffiliationDTO {
 
-    @Schema(description = "Requête pour affilier un acteur à une structure")
+    @Schema(name = "AffiliationRequest", description = "Requête pour affilier un acteur à une structure")
     public record Request(
-            @NotNull UUID actorId,
-            @NotNull UUID targetId, // ID de l'agence ou de l'organisation
-            @Schema(description = "Type de relation", example = "MEMBER", allowableValues = {"MEMBER", "MANAGER", "PARTNER"})
+            @NotNull 
+            @Schema(description = "ID de l'acteur (Employé, Business Actor...)", example = "123e4567-e89b-12d3-a456-426614174000")
+            UUID actorId,
+
+            @NotNull 
+            @Schema(description = "ID de la cible (Organisation ou Agence)", example = "987e6543-e21b-12d3-a456-426614174000")
+            UUID targetId, 
+
+            @Schema(description = "Type de relation", example = "MEMBER", allowableValues = {"MEMBER", "MANAGER", "PARTNER", "CONSULTANT"})
             String type
     ) {}
 
-    @Schema(description = "Réponse d'affiliation")
+    @Schema(name = "AffiliationResponse", description = "Réponse d'affiliation")
     public record Response(
             UUID id,
             UUID actorId,
-            UUID targetId, // organizationId ou agencyId selon le cas
+            UUID targetId, 
             String type,
             Boolean isActive,
             LocalDateTime createdAt

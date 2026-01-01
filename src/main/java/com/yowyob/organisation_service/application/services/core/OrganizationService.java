@@ -54,6 +54,12 @@ public class OrganizationService {
                 .map(organizationMapper::toResponse); 
     }
 
+    public Flux<OrganizationDTO.Response> getOrganizationsByOwner(UUID businessActorId) {
+        return organizationRepository.findByBusinessActorId(businessActorId)
+                .filter(org -> org.getDeletedAt() == null) // On filtre les supprimés
+                .map(organizationMapper::toResponse);
+    }
+    
     public Flux<OrganizationDTO.Response> getAllOrganizations() {
         return organizationRepository.findAll()
                 .filter(org -> org.getDeletedAt() == null)

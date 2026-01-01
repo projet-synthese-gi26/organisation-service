@@ -10,33 +10,42 @@ import java.util.UUID;
 
 public class CustomerDTO {
 
-    @Schema(description = "Requête création Client")
-    public record Request(
-            @NotNull UUID organizationId,
-            @NotBlank String firstName,
-            @NotBlank String lastName,
-            String email,
-            String phoneNumber,
-            String paymentMethod,
-            Boolean isIndividual,
-            Boolean isVerified
-    ) {}
+        @Schema(name = "CustomerRequest", description = "Requête création Client")
+        public record Request(
+                        @NotNull @Schema(description = "ID de l'organisation propriétaire du client") UUID organizationId,
 
-    public record Response(
-            UUID id,
-            String code,
-            UUID organizationId,
-            String firstName,
-            String lastName,
-            String email,
-            String phoneNumber,
-            BigDecimal amountPaid,
-            Boolean isVerified,
-            
-            // Relations
-            List<AddressDTO.Response> addresses,
-            List<ContactDTO.Response> contacts,
-            
-            LocalDateTime createdAt
-    ) {}
+                        @NotBlank @Schema(example = "Paul") String firstName,
+
+                        @NotBlank @Schema(example = "Biya") String lastName,
+
+                        @Schema(example = "paul@client.com") String email,
+
+                        @Schema(example = "+237 600 00 00 00") String phoneNumber,
+
+                        @Schema(example = "MOMO", allowableValues = {
+                                        "MOMO", "CASH", "CARD" }) String paymentMethod,
+
+                        @Schema(defaultValue = "true") Boolean isIndividual,
+
+                        @Schema(defaultValue = "false") Boolean isVerified){
+        }
+
+        @Schema(name = "CustomerResponse", description = "Réponse Client")
+        public record Response(
+                        UUID id,
+                        String code,
+                        UUID organizationId,
+                        String firstName,
+                        String lastName,
+                        String email,
+                        String phoneNumber,
+                        BigDecimal amountPaid,
+                        Boolean isVerified,
+
+                        // Relations
+                        List<AddressDTO.Response> addresses,
+                        List<ContactDTO.Response> contacts,
+
+                        LocalDateTime createdAt) {
+        }
 }

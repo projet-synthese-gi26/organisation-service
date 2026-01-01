@@ -8,10 +8,10 @@ import java.util.UUID;
 
 public class AddressDTO {
 
-    @Schema(description = "Requête de création d'adresse")
+    @Schema(name = "AddressRequest", description = "Requête de création d'adresse")
     public record Request(
             @NotNull(message = "L'ID de l'entité parente est obligatoire")
-            @Schema(description = "ID de l'organisation, agence ou acteur", example = "uuid-of-organization")
+            @Schema(description = "ID de l'organisation, agence ou acteur", example = "123e4567-e89b-12d3-a456-426614174000")
             UUID addressableId,
 
             @NotBlank(message = "Le type d'entité est obligatoire")
@@ -22,26 +22,38 @@ public class AddressDTO {
             String type,
 
             @NotBlank(message = "L'adresse ligne 1 est obligatoire")
+            @Schema(example = "123 Rue de la République")
             String addressLine1,
             
+            @Schema(example = "Batiment B, 2ème étage")
             String addressLine2,
 
             @NotBlank(message = "La ville est obligatoire")
+            @Schema(example = "Douala")
             String city,
             
+            @Schema(example = "Littoral")
             String state,
+            
+            @Schema(example = "Akwa")
             String locality,
+            
+            @Schema(example = "BP 1234")
             String zipCode,
+            
             UUID countryId,
             String poBox,
             String neighborHood,
             String informalDescription,
+            
+            @Schema(defaultValue = "false")
             Boolean isDefault,
+            
             Double latitude,
             Double longitude
     ) {}
 
-    @Schema(description = "Réponse adresse")
+    @Schema(name = "AddressResponse", description = "Réponse adresse")
     public record Response(
             UUID id,
             UUID addressableId,
