@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public class OrganizationDTO {
 
-    @Schema(description = "Requête de création/modification d'une organisation")
+    @Schema(name = "OrganizationRequest", description = "Requête de création/modification d'une organisation")
     public record Request(
             @NotNull(message = "L'ID du propriétaire (Business Actor) est obligatoire")
             @Schema(description = "ID de l'utilisateur propriétaire", example = "123e4567-e89b-12d3-a456-426614174000")
@@ -34,10 +34,10 @@ public class OrganizationDTO {
             @Schema(description = "Email de contact officiel", example = "contact@yowyob.com")
             String email,
 
-            @Schema(description = "Description de l'organisation")
+            @Schema(description = "Description de l'organisation", example = "Leader technologique en Afrique")
             String description,
 
-            @Schema(description = "URL du logo")
+            @Schema(description = "URL du logo", example = "https://cdn.yowyob.com/logo.png")
             String logoUri,
 
             @Schema(description = "ID du fichier logo (si stocké en interne)")
@@ -46,7 +46,7 @@ public class OrganizationDTO {
             @Schema(description = "Site web officiel", example = "https://www.yowyob.com")
             String websiteUrl,
 
-            @Schema(description = "Liens réseaux sociaux (JSON ou String)", example = "{'facebook': '...', 'linkedin': '...'}")
+            @Schema(description = "Liens réseaux sociaux (JSON ou String)", example = "{\"facebook\": \"fb.com/yowyob\", \"linkedin\": \"in/yowyob\"}")
             String socialNetwork,
 
             @Schema(description = "Numéro d'enregistrement (RCCM/SIRET)", example = "RC-DLA-2024-B-1234")
@@ -75,11 +75,11 @@ public class OrganizationDTO {
             @Schema(description = "Est-ce une entreprise individuelle ?", defaultValue = "false")
             Boolean isIndividualBusiness,
 
-            @Schema(description = "Liste de mots-clés")
+            @Schema(description = "Liste de mots-clés", example = "[\"Tech\", \"Innovation\", \"Cloud\"]")
             List<String> keywords
     ) {}
 
-    @Schema(description = "Réponse contenant les détails de l'organisation")
+    @Schema(name = "OrganizationResponse", description = "Réponse contenant les détails de l'organisation")
     public record Response(
             UUID id,
             String code,
@@ -99,6 +99,7 @@ public class OrganizationDTO {
             BigDecimal capitalShare,
             String ceoName,
             Integer yearFounded,
+            
             @Schema(description = "Liste des adresses associées")
             List<AddressDTO.Response> addresses,
 
@@ -107,6 +108,7 @@ public class OrganizationDTO {
 
             @Schema(description = "Liste des mots-clés")
             List<String> keywords,
+            
             Integer numberOfEmployees,
             String legalForm,
             Boolean isActive,

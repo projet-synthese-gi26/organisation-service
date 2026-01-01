@@ -42,6 +42,12 @@ public class OrganizationController {
         return organizationService.getAllOrganizations();
     }
 
+    @GetMapping("/owner/{businessActorId}")
+    @Operation(summary = "Organisations d'un propriétaire", description = "Récupère les organisations liées à un Business Actor.")
+    public Flux<OrganizationDTO.Response> getByOwner(@PathVariable UUID businessActorId) {
+        return organizationService.getOrganizationsByOwner(businessActorId);
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Récupérer par ID", description = "Retourne les détails d'une organisation spécifique.")
     @ApiResponses({
@@ -55,7 +61,8 @@ public class OrganizationController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Mettre à jour", description = "Met à jour partiellement ou totalement une organisation.")
-    public Mono<ResponseEntity<OrganizationDTO.Response>> update(@PathVariable UUID id, @Valid @RequestBody OrganizationDTO.Request request) {
+    public Mono<ResponseEntity<OrganizationDTO.Response>> update(@PathVariable UUID id,
+            @Valid @RequestBody OrganizationDTO.Request request) {
         return organizationService.updateOrganization(id, request)
                 .map(ResponseEntity::ok);
     }

@@ -9,17 +9,24 @@ import java.util.UUID;
 
 public class ProposedActivityDTO {
 
-    @Schema(description = "Requête de création d'activité/service")
+    @Schema(name = "ProposedActivityRequest", description = "Requête de création d'activité/service")
     public record Request(
             @NotNull UUID organizationId,
-            @NotBlank String name,
+            
+            @NotBlank 
+            @Schema(example = "Audit de Sécurité")
+            String name,
+            
             @Schema(description = "Type de service", example = "CONSULTING")
             String type,
-            @Schema(description = "Prix ou Taux horaire")
+            
+            @Schema(description = "Prix ou Taux horaire", example = "50000.00")
             BigDecimal rate,
+            
             String description
     ) {}
 
+    @Schema(name = "ProposedActivityResponse", description = "Réponse Activité")
     public record Response(
             UUID id,
             UUID organizationId,

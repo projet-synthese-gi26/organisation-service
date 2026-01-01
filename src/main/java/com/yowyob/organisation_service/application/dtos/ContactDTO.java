@@ -9,54 +9,44 @@ import java.util.UUID;
 
 public class ContactDTO {
 
-    @Schema(description = "Requête de création de contact")
-    public record Request(
-            @NotNull(message = "L'ID de l'entité parente est obligatoire")
-            @Schema(description = "ID de l'organisation, agence ou acteur")
-            UUID contactableId,
+        @Schema(name = "ContactRequest", description = "Requête de création de contact")
+        public record Request(
+                        @NotNull(message = "L'ID de l'entité parente est obligatoire") @Schema(description = "ID de l'organisation, agence ou acteur", example = "123e4567-e89b-12d3-a456-426614174000") UUID contactableId,
 
-            @NotBlank(message = "Le type d'entité est obligatoire")
-            @Schema(description = "Type de l'entité parente", example = "ORGANIZATION", allowableValues = {"ORGANIZATION", "AGENCY", "ACTOR"})
-            String contactableType,
+                        @NotBlank(message = "Le type d'entité est obligatoire") @Schema(description = "Type de l'entité parente", example = "ORGANIZATION", allowableValues = {
+                                        "ORGANIZATION", "AGENCY", "ACTOR" }) String contactableType,
 
-            @Schema(description = "Titre ou civilité", example = "Mr")
-            String title,
+                        @Schema(description = "Titre ou civilité", example = "Mr") String title,
 
-            @NotBlank(message = "Prénom")
-            String firstName,
-            
-            @NotBlank(message = "Nom")
-            String lastName,
+                        @NotBlank(message = "Prénom") @Schema(example = "Jean") String firstName,
 
-            @Email
-            @NotBlank(message = "Email obligatoire")
-            String email,
+                        @NotBlank(message = "Nom") @Schema(example = "Dupont") String lastName,
 
-            @Schema(description = "Numéro de téléphone principal")
-            String phoneNumber,
-            
-            String secondaryPhoneNumber,
-            String faxNumber,
-            String secondaryEmail,
-            
-            @Schema(description = "Définir comme contact favori/principal")
-            Boolean isFavorite
-    ) {}
+                        @Email @NotBlank(message = "Email obligatoire") @Schema(example = "jean.dupont@example.com") String email,
 
-    @Schema(description = "Réponse contact")
-    public record Response(
-            UUID id,
-            UUID contactableId,
-            String contactableType,
-            String firstName,
-            String lastName,
-            String title,
-            String email,
-            String phoneNumber,
-            String secondaryPhoneNumber,
-            Boolean isFavorite,
-            Boolean isEmailVerified,
-            Boolean isPhoneNumberVerified,
-            LocalDateTime createdAt
-    ) {}
+                        @Schema(description = "Numéro de téléphone principal", example = "+237 699 99 99 99") String phoneNumber,
+
+                        String secondaryPhoneNumber,
+                        String faxNumber,
+                        String secondaryEmail,
+
+                        @Schema(description = "Définir comme contact favori/principal", defaultValue = "false") Boolean isFavorite){
+        }
+
+        @Schema(name = "ContactResponse", description = "Réponse contact")
+        public record Response(
+                        UUID id,
+                        UUID contactableId,
+                        String contactableType,
+                        String firstName,
+                        String lastName,
+                        String title,
+                        String email,
+                        String phoneNumber,
+                        String secondaryPhoneNumber,
+                        Boolean isFavorite,
+                        Boolean isEmailVerified,
+                        Boolean isPhoneNumberVerified,
+                        LocalDateTime createdAt) {
+        }
 }

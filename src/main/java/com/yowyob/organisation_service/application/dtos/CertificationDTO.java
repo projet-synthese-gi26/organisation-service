@@ -8,14 +8,25 @@ import java.util.UUID;
 
 public class CertificationDTO {
 
+    @Schema(name = "CertificationRequest", description = "Requête d'ajout de certification")
     public record Request(
             @NotNull UUID organizationId,
-            @NotBlank String name,
-            @NotBlank String type,
+            
+            @NotBlank 
+            @Schema(example = "ISO 9001")
+            String name,
+            
+            @NotBlank 
+            @Schema(example = "QUALITY_LABEL")
+            String type,
+            
             String description,
+            
+            @Schema(description = "Date d'obtention")
             LocalDateTime obtainementDate
     ) {}
 
+    @Schema(name = "CertificationResponse", description = "Réponse Certification")
     public record Response(
             UUID id,
             UUID organizationId,

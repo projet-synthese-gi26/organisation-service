@@ -10,38 +10,52 @@ import java.util.UUID;
 
 public class EmployeeDTO {
 
-    @Schema(description = "Requête de création d'un employé")
+    @Schema(name = "EmployeeRequest", description = "Requête de création d'un employé")
     public record Request(
             @NotNull(message = "L'ID de l'organisation est obligatoire")
-            @Schema(description = "Organisation employeur")
+            @Schema(description = "ID de l'organisation employeur", example = "123e4567-e89b-12d3-a456-426614174000")
             UUID organizationId,
 
-            @Schema(description = "ID de l'utilisateur dans le système d'auth (Keycloak/Auth0...)", example = "user-uuid-123")
+            @Schema(description = "ID de l'utilisateur dans le système d'auth (Keycloak/Auth0...)", example = "auth0|123456")
             UUID authUserId,
 
             @NotBlank(message = "Le prénom est obligatoire")
+            @Schema(example = "Alice")
             String firstName,
 
             @NotBlank(message = "Le nom est obligatoire")
+            @Schema(example = "Merveille")
             String lastName,
 
-            @Schema(description = "Nom complet (optionnel, peut être auto-généré)")
+            @Schema(description = "Nom complet (optionnel, peut être auto-généré)", example = "Alice Merveille")
             String name,
 
+            @Schema(example = "alice@yowyob.com")
             String email,
+            
+            @Schema(example = "+237 600 00 00 00")
             String phoneNumber,
+            
             String description,
+            
+            @Schema(example = "F", allowableValues = {"M", "F", "OTHER"})
             String gender,
+            
+            @Schema(example = "Camerounaise")
             String nationality,
+            
+            @Schema(example = "1990-01-01")
             LocalDate birthDate,
+            
+            @Schema(example = "Ingénieur Logiciel")
             String profession,
+            
             String biography,
 
-            // Champs spécifiques Employee
             @Schema(description = "Est-ce un manager ?", defaultValue = "false")
             Boolean isManager,
             
-            @Schema(description = "Role ou poste occupé", example = "Développeur Senior")
+            @Schema(description = "Role ou poste occupé", example = "Lead Developer")
             String role,
             
             @Schema(description = "Département", example = "IT")
@@ -51,7 +65,7 @@ public class EmployeeDTO {
             String photoUri
     ) {}
 
-    @Schema(description = "Réponse Employé enrichie")
+    @Schema(name = "EmployeeResponse", description = "Réponse Employé enrichie")
     public record Response(
             UUID id,
             String code,

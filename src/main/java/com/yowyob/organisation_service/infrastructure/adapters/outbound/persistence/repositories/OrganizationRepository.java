@@ -2,6 +2,7 @@ package com.yowyob.organisation_service.infrastructure.adapters.outbound.persist
 
 import com.yowyob.organisation_service.infrastructure.adapters.outbound.persistence.entities.core.Organization;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -11,4 +12,6 @@ public interface OrganizationRepository extends R2dbcRepository<Organization, UU
     Mono<Organization> findByCode(String code);
 
     Mono<Boolean> existsByBusinessRegistrationNumber(String registrationNumber);
+
+    Flux<Organization> findByBusinessActorId(UUID businessActorId);
 }

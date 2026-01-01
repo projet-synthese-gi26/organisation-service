@@ -71,6 +71,7 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     validator-url: none
+  use-fqn: true
 
 # --- CONFIGS MÉTIER ---
 application:
