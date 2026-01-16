@@ -17,23 +17,29 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import com.yowyob.organisation_service.infrastructure.adapters.outbound.persistence.repositories.OrganizationRepository;
 
 @Service
 @RequiredArgsConstructor
 public class ThirdPartyService {
 
     private final ThirdPartyRepository repository;
+    private final OrganizationRepository organizationRepository; // <--- Injection
     private final ThirdPartyMapper mapper;
     private final AddressService addressService;
     private final ContactService contactService;
 
     @Transactional
     public Mono<ThirdPartyDTO.Response> create(ThirdPartyDTO.Request request) {
-        ThirdParty entity = mapper.toEntity(request);
-        entity.setCode("TP-" + System.currentTimeMillis());
-        entity.setCreatedAt(LocalDateTime.now());
-        
-        return repository.save(entity)
+        return organizationRepository.existsById(request.organizationId())
+                .filter(exists -> exists)
+                .switchIfEmpty(Mono.error(new ResponseStatusException(NOT_FOUND, "Organisation invalide")))
+                .flatMap(exists -> {
+                    ThirdParty entity = mapper.toEntity(request);
+                    entity.setCode("TP-" + System.currentTimeMillis());
+                    entity.setCreatedAt(LocalDateTime.now());
+                    return repository.save(entity);
+                })
                 .map(mapper::toResponse);
     }
 

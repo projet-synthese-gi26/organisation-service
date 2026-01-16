@@ -118,6 +118,20 @@
 			<artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
 			<version>2.7.0</version>			<!-- Au lieu de 2.5.0 -->
 		</dependency>
+
+		<!-- SECURITY & JWT -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-resource-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-jose</artifactId>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>
