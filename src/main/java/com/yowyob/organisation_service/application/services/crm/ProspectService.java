@@ -19,12 +19,14 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import com.yowyob.organisation_service.infrastructure.adapters.outbound.persistence.repositories.OrganizationRepository;
 
 @Service
 @RequiredArgsConstructor
 public class ProspectService {
 
     private final ProspectRepository repository;
+    private final OrganizationRepository organizationRepository;
     private final InteractionRepository interactionRepository;
     private final CrmMapper mapper;
     private final InteractionMapper interactionMapper;
@@ -33,12 +35,16 @@ public class ProspectService {
 
     @Transactional
     public Mono<ProspectDTO.Response> createProspect(ProspectDTO.Request request) {
-        Prospect entity = mapper.toProspectEntity(request);
-        entity.setCode("PSP-" + System.currentTimeMillis());
-        entity.setCreatedAt(LocalDateTime.now());
-        if(entity.getName() == null) entity.setName(request.firstName() + " " + request.lastName());
-
-        return repository.save(entity)
+        return organizationRepository.existsById(request.organizationId())
+                .filter(exists -> exists)
+                .switchIfEmpty(Mono.error(new ResponseStatusException(NOT_FOUND, "Organisation invalide")))
+                .flatMap(exists -> {
+                    Prospect entity = mapper.toProspectEntity(request);
+                    entity.setCode("PSP-" + System.currentTimeMillis());
+                    entity.setCreatedAt(LocalDateTime.now());
+                    if(entity.getName() == null) entity.setName(request.firstName() + " " + request.lastName());
+                    return repository.save(entity);
+                })
                 .map(p -> mapper.toProspectResponse(p, null, null, null));
     }
 

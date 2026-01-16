@@ -427,3 +427,67 @@ CREATE INDEX IF NOT EXISTS idx_contact_poly ON contact(contactable_id, contactab
 -- Pour les tables de jointure
 CREATE INDEX IF NOT EXISTS idx_org_actor_ids ON organization_actor(organization_id, actor_id);
 CREATE INDEX IF NOT EXISTS idx_agency_aff_ids ON agency_affiliation(agency_id, actor_id);
+
+
+-- ==============================================================================
+-- 7. CONTRAINTES D'INTÉGRITÉ (FOREIGN KEYS)
+-- À exécuter pour garantir la cohérence des données
+-- ==============================================================================
+
+-- 1. Liens vers ORGANIZATION
+-- Si on supprime une org, on veut souvent empêcher la suppression s'il reste des données (RESTRICT)
+-- ou tout supprimer en cascade (CASCADE). Ici, on sécurise par défaut (RESTRICT ou NO ACTION).
+
+ALTER TABLE agency 
+    ADD CONSTRAINT fk_agency_org FOREIGN KEY (organization_id) REFERENCES organization(id);
+
+ALTER TABLE employee 
+    ADD CONSTRAINT fk_employee_org FOREIGN KEY (organization_id) REFERENCES organization(id);
+
+ALTER TABLE business_actor 
+    ADD CONSTRAINT fk_business_actor_org FOREIGN KEY (organization_id) REFERENCES organization(id);
+
+ALTER TABLE customer 
+    ADD CONSTRAINT fk_customer_org FOREIGN KEY (organization_id) REFERENCES organization(id);
+
+ALTER TABLE prospect 
+    ADD CONSTRAINT fk_prospect_org FOREIGN KEY (organization_id) REFERENCES organization(id);
+
+ALTER TABLE provider 
+    ADD CONSTRAINT fk_provider_org FOREIGN KEY (organization_id) REFERENCES organization(id);
+
+ALTER TABLE sales_person 
+    ADD CONSTRAINT fk_sales_person_org FOREIGN KEY (organization_id) REFERENCES organization(id);
+
+ALTER TABLE third_party 
+    ADD CONSTRAINT fk_third_party_org FOREIGN KEY (organization_id) REFERENCES organization(id);
+
+ALTER TABLE proposed_activity 
+    ADD CONSTRAINT fk_activity_org FOREIGN KEY (organization_id) REFERENCES organization(id);
+
+ALTER TABLE certification 
+    ADD CONSTRAINT fk_certification_org FOREIGN KEY (organization_id) REFERENCES organization(id);
+
+-- 2. CRM & Interactions
+ALTER TABLE interaction 
+    ADD CONSTRAINT fk_interaction_prospect FOREIGN KEY (prospect_id) REFERENCES prospect(id);
+
+-- 3. Domaines & Jointures
+ALTER TABLE business_domain 
+    ADD CONSTRAINT fk_domain_parent FOREIGN KEY (parent_id) REFERENCES business_domain(id);
+
+ALTER TABLE organization_domain 
+    ADD CONSTRAINT fk_org_domain_org FOREIGN KEY (organization_id) REFERENCES organization(id);
+
+ALTER TABLE organization_domain 
+    ADD CONSTRAINT fk_org_domain_dom FOREIGN KEY (domain_id) REFERENCES business_domain(id);
+
+ALTER TABLE agency_domain 
+    ADD CONSTRAINT fk_agency_domain_ag FOREIGN KEY (agency_id) REFERENCES agency(id);
+
+ALTER TABLE agency_domain 
+    ADD CONSTRAINT fk_agency_domain_dom FOREIGN KEY (domain_id) REFERENCES business_domain(id);
+
+-- Note sur les Tables Polymorphiques (Address, Contact, OrganizationActor...) :
+-- On NE PEUT PAS mettre de FK sur addressable_id car cela pointe vers plusieurs tables possibles.
+-- L'intégrité de ces tables repose sur la logique applicative (Services Java).

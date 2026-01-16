@@ -17,24 +17,35 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import com.yowyob.organisation_service.infrastructure.adapters.outbound.persistence.repositories.OrganizationRepository;
 
 @Service
 @RequiredArgsConstructor
 public class CustomerService {
 
     private final CustomerRepository repository;
+    private final OrganizationRepository organizationRepository; // <--- Injection ajoutée
     private final CrmMapper mapper;
     private final AddressService addressService;
     private final ContactService contactService;
 
     @Transactional
     public Mono<CustomerDTO.Response> createCustomer(CustomerDTO.Request request) {
-        Customer entity = mapper.toCustomerEntity(request);
-        entity.setCode("CUST-" + System.currentTimeMillis());
-        entity.setCreatedAt(LocalDateTime.now());
-        if(entity.getName() == null) entity.setName(request.firstName() + " " + request.lastName());
+        // 1. Vérification d'existence de l'organisation
+        return organizationRepository.existsById(request.organizationId())
+                .filter(exists -> exists)
+                .switchIfEmpty(
+                        Mono.error(new ResponseStatusException(NOT_FOUND, "Organisation invalide ou inexistante")))
+                .flatMap(exists -> {
+                    // 2. Logique de création originale
+                    Customer entity = mapper.toCustomerEntity(request);
+                    entity.setCode("CUST-" + System.currentTimeMillis());
+                    entity.setCreatedAt(LocalDateTime.now());
+                    if (entity.getName() == null)
+                        entity.setName(request.firstName() + " " + request.lastName());
 
-        return repository.save(entity)
+                    return repository.save(entity);
+                })
                 .map(c -> mapper.toCustomerResponse(c, null, null));
     }
 
@@ -43,8 +54,8 @@ public class CustomerService {
                 .switchIfEmpty(Mono.error(new ResponseStatusException(NOT_FOUND, "Client non trouvé")))
                 .flatMap(c -> Mono.zip(
                         addressService.getAddressesByParent(c.getId(), "CUSTOMER").collectList(),
-                        contactService.getContactsByParent(c.getId(), "CUSTOMER").collectList()
-                ).map(tuple -> mapper.toCustomerResponse(c, tuple.getT1(), tuple.getT2())));
+                        contactService.getContactsByParent(c.getId(), "CUSTOMER").collectList())
+                        .map(tuple -> mapper.toCustomerResponse(c, tuple.getT1(), tuple.getT2())));
     }
 
     public Flux<CustomerDTO.Response> getByOrganization(UUID orgId) {

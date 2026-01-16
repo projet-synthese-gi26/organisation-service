@@ -9,6 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
+import com.yowyob.organisation_service.infrastructure.adapters.outbound.persistence.repositories.OrganizationRepository;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -19,12 +23,20 @@ public class ProposedActivityService {
 
     private final ProposedActivityRepository repository;
     private final ProposedActivityMapper mapper;
+    private final OrganizationRepository organizationRepository;
 
     @Transactional
     public Mono<ProposedActivityDTO.Response> createActivity(ProposedActivityDTO.Request request) {
-        ProposedActivity entity = mapper.toEntity(request);
-        entity.setCreatedAt(LocalDateTime.now());
-        return repository.save(entity).map(mapper::toResponse);
+        return organizationRepository.existsById(request.organizationId())
+                .filter(exists -> exists)
+                // CORRECTION ICI : Utilisation explicite de HttpStatus.NOT_FOUND
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "Organisation invalide")))
+                .flatMap(exists -> {
+                    ProposedActivity entity = mapper.toEntity(request);
+                    entity.setCreatedAt(LocalDateTime.now());
+                    return repository.save(entity);
+                })
+                .map(mapper::toResponse);
     }
 
     public Flux<ProposedActivityDTO.Response> getByOrganization(UUID organizationId) {
