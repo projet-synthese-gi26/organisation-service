@@ -82,10 +82,8 @@ application:
   
   security:
     jwt:
-      # La clé secrète partagée (HS256)
       secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
   cors:
-    # En DEV : on peut laisser localhost. En PROD : mettre l'URL du frontend (ex: https://app.yowyob.com)
     allowed-origins: "*"
       
 # --- RESILIENCE (Circuit Breaker - Comme le Template) ---

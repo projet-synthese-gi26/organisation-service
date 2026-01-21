@@ -1,20 +1,29 @@
 package com.yowyob.organisation_service.infrastructure.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder; // <--- Import pour le filtre
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtGrantedAuthoritiesConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import reactor.core.publisher.Mono;
 
-import javax.crypto.spec.SecretKeySpec;
+import jakarta.annotation.PostConstruct; // <--- CORRECTION ICI (jakarta au lieu de javax)
+import javax.crypto.spec.SecretKeySpec; // javax.crypto fait partie du JDK, donc ça ne change pas
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
@@ -23,81 +32,74 @@ import java.util.List;
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
+
     @Value("${application.security.jwt.secret}")
     private String jwtSecret;
 
     @Value("${application.cors.allowed-origins}")
     private String allowedOrigins;
 
+    @PostConstruct
+    public void logSecretStatus() {
+        if (jwtSecret == null || jwtSecret.isEmpty()) {
+            log.error("❌ LA CLÉ JWT EST VIDE OU NULLE ! Vérifiez application.yml");
+        } else {
+            // Affiche les 5 premiers caractères pour vérifier si c'est la bonne clé
+            log.info("✅ Clé JWT chargée. Longueur: {} chars. Début: '{}...'",
+                    jwtSecret.length(),
+                    jwtSecret.length() > 5 ? jwtSecret.substring(0, 5) : jwtSecret);
+        }
+    }
+
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
-                // 1. Désactiver CSRF (inutile pour API REST stateless)
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                
-                // 2. Activer et configurer CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                
-                // 3. Règles d'autorisation des routes
+
+                // --- FILTRE DE DEBUG ---
+                .addFilterBefore((exchange, chain) -> {
+                    var request = exchange.getRequest();
+                    var authHeader = request.getHeaders().getFirst("Authorization");
+
+                    log.info("📥 REQUÊTE : {} {}", request.getMethod(), request.getPath());
+
+                    if (authHeader != null) {
+                        String masked = authHeader.length() > 20 ? authHeader.substring(0, 20) + "..." : authHeader;
+                        log.info("🔑 Header Authorization : '{}'", masked);
+                    } else {
+                        log.warn("⚠️ AUCUN Header Authorization trouvé !");
+                    }
+                    return chain.filter(exchange);
+                }, SecurityWebFiltersOrder.HTTP_BASIC) // <--- CORRECTION ICI
+                // -----------------------
+
                 .authorizeExchange(exchanges -> exchanges
-                        // Swagger UI / OpenAPI (Public)
-                        .pathMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        // Actuator (Monitoring) - À sécuriser en PROD idéalement, mais public pour l'instant
+                        .pathMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/**")
+                        .permitAll()
                         .pathMatchers("/actuator/**").permitAll()
-                        // Tout le reste nécessite d'être authentifié
-                        .anyExchange().authenticated()
-                )
-                
-                // 4. Configurer le Resource Server (Validation JWT)
+                        .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt.jwtDecoder(jwtDecoder()))
-                )
+                        .jwt(jwt -> jwt
+                                .jwtDecoder(jwtDecoder())
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                        .authenticationEntryPoint((exchange, ex) -> {
+                            log.error("⛔ ERREUR 401 : {}", ex.getMessage());
+                            if (ex instanceof OAuth2AuthenticationException oauthEx) {
+                                // Affiche l'erreur détaillée (signature invalide, expiré, malformé...)
+                                log.error("Détails OAuth2 : {}", oauthEx.getError());
+                            }
+                            return Mono.fromRunnable(() -> exchange.getResponse()
+                                    .setStatusCode(org.springframework.http.HttpStatus.UNAUTHORIZED));
+                        }))
                 .build();
     }
 
-    /**
-     * Configuration CORS stricte pour la Production
-     */
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-
-        // MODIFICATION ICI : Gestion du cas "*" (Tout le monde)
-        if ("*".equals(allowedOrigins)) {
-            // Cette méthode permet "toutes les origines" MÊME avec allowCredentials = true
-            configuration.setAllowedOriginPatterns(List.of("*"));
-        } else {
-            // Comportement standard pour une liste explicite
-            configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
-        }
-        
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
-        configuration.setAllowCredentials(true); 
-        configuration.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
-
-    /**
-     * Décodeur JWT configuré pour HS256 (Symétrique)
-     */
     @Bean
     public ReactiveJwtDecoder jwtDecoder() {
-        // Conversion de la clé hexadécimale ou textuelle en SecretKeySpec
-        // ATTENTION : Si votre clé dans le properties est du texte brut, utilisez .getBytes()
-        // Si c'est du Hexa, il faudrait un convertisseur Hex -> Bytes.
-        // D'après votre exemple ("404E..."), cela ressemble à de l'Hexadécimal.
-        // Cependant, souvent les gens mettent la clé en texte brut.
-        
-        // HYPOTHÈSE : La clé fournie est une chaîne HEXADÉCIMALE représentant des octets.
-        // Si c'est juste une "passphrase" texte, utilisez jwtSecret.getBytes(StandardCharsets.UTF_8).
-        // Vu la longueur et les caractères (0-9, A-F), je parie sur du HEX.
-        
-        byte[] secretKeyBytes = hexStringToByteArray(jwtSecret);
-        
+        // Lecture de la clé en UTF-8 (Raw String) comme dans Auth Service
+        byte[] secretKeyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
         SecretKeySpec secretKey = new SecretKeySpec(secretKeyBytes, "HmacSHA256");
 
         return NimbusReactiveJwtDecoder.withSecretKey(secretKey)
@@ -105,14 +107,33 @@ public class SecurityConfig {
                 .build();
     }
 
-    // Helper pour convertir le HEX string en bytes
-    private byte[] hexStringToByteArray(String s) {
-        int len = s.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                    + Character.digit(s.charAt(i + 1), 16));
+    @Bean
+    public ReactiveJwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+        grantedAuthoritiesConverter.setAuthoritiesClaimName("roles");
+        grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
+
+        ReactiveJwtAuthenticationConverter jwtAuthenticationConverter = new ReactiveJwtAuthenticationConverter();
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(
+                new ReactiveJwtGrantedAuthoritiesConverterAdapter(grantedAuthoritiesConverter));
+        return jwtAuthenticationConverter;
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        if ("*".equals(allowedOrigins)) {
+            config.setAllowedOriginPatterns(List.of("*"));
+        } else {
+            config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
         }
-        return data;
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }

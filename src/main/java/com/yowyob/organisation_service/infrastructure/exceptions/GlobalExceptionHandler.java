@@ -36,12 +36,7 @@ public class GlobalExceptionHandler {
     // Gestion des erreurs fonctionnelles (Not Found, etc.)
     @ExceptionHandler(ResponseStatusException.class)
     public Mono<ProblemDetail> handleResponseStatusException(ResponseStatusException ex) {
-        // Si c'est une 404 sur une ressource statique (comme swagger-ui), on laisse passer
-        // pour que Spring renvoie la page 404 standard HTML ou gère la redirection.
-        if (ex.getStatusCode().value() == 404) {
-             return Mono.error(ex); // On relance l'erreur pour que Spring WebFlux la gère nativement
-        }
-
+        // On ne renvoie pas l'erreur, on la formatte en JSON pour le client API
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(ex.getStatusCode(), ex.getReason());
         problem.setTitle("Erreur Fonctionnelle");
         return Mono.just(problem);
