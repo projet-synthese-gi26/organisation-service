@@ -1,9 +1,44 @@
+-- ==============================================================================
+-- 0. NETTOYAGE (DROP) - À RETIRER UNE FOIS EN PRODUCTION STABLE
+-- ==============================================================================
+
+-- Tables de jointure et relations
+DROP TABLE IF EXISTS agency_domain CASCADE;
+DROP TABLE IF EXISTS organization_domain CASCADE;
+DROP TABLE IF EXISTS agency_affiliation CASCADE;
+DROP TABLE IF EXISTS organization_actor CASCADE;
+
+-- Tables transverses (enfants)
+DROP TABLE IF EXISTS interaction CASCADE;
+DROP TABLE IF EXISTS contact CASCADE;
+DROP TABLE IF EXISTS address CASCADE;
+
+-- Référentiels et Activités
+DROP TABLE IF EXISTS certification CASCADE;
+DROP TABLE IF EXISTS proposed_activity CASCADE;
+DROP TABLE IF EXISTS business_domain CASCADE;
+
+-- Tiers
+DROP TABLE IF EXISTS third_party CASCADE;
+
+-- Acteurs (Héritage)
+DROP TABLE IF EXISTS sales_person CASCADE;
+DROP TABLE IF EXISTS provider CASCADE;
+DROP TABLE IF EXISTS prospect CASCADE;
+DROP TABLE IF EXISTS customer CASCADE;
+DROP TABLE IF EXISTS business_actor CASCADE;
+DROP TABLE IF EXISTS employee CASCADE;
+
+-- Structure Core (Parents)
+DROP TABLE IF EXISTS agency CASCADE;
+DROP TABLE IF EXISTS organization CASCADE;
+
 -- Extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. ENTITES DE BASE ET STRUCTURE
 CREATE TABLE IF NOT EXISTS organization (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code VARCHAR(255) UNIQUE,
     service VARCHAR(255),
     business_actor_id UUID,
@@ -33,7 +68,7 @@ CREATE TABLE IF NOT EXISTS organization (
 );
 
 CREATE TABLE IF NOT EXISTS agency (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code VARCHAR(255) UNIQUE,
     organization_id UUID,
     owner_id UUID,
@@ -104,7 +139,7 @@ CREATE TABLE IF NOT EXISTS employee (
 );
 
 CREATE TABLE IF NOT EXISTS business_actor (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID,
     auth_user_id UUID,
     first_name VARCHAR(255),
@@ -209,7 +244,7 @@ CREATE TABLE IF NOT EXISTS sales_person (
 -- 3. TIERS ET PARTENAIRES (B2B)
 
 CREATE TABLE IF NOT EXISTS third_party (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code VARCHAR(255),
     organization_id UUID,
     type VARCHAR(50),
