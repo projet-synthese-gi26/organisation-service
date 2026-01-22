@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtGrantedAuthoritiesConverterAdapter;
@@ -121,19 +120,32 @@ public class SecurityConfig {
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // MODIFICATION : On utilise setAllowedOriginPatterns pour tout le monde.
+        // Cela gère à la fois le "*" et les domaines spécifiques, tout en autorisant
+        // les credentials.
         if ("*".equals(allowedOrigins)) {
-            config.setAllowedOriginPatterns(List.of("*"));
+            configuration.setAllowedOriginPatterns(List.of("*"));
         } else {
-            config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+            // Nettoyage des espaces éventuels dans la config
+            List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                    .map(String::trim)
+                    .toList();
+            configuration.setAllowedOriginPatterns(origins);
         }
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        config.setAllowCredentials(true);
-        config.setMaxAge(3600L);
+
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
+        // Ajout de headers souvent nécessaires en prod
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin",
+                "Access-Control-Request-Method", "Access-Control-Request-Headers"));
+
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 }
