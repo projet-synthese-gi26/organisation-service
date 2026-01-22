@@ -1,5 +1,6 @@
 server:
   port: 8080 # Port standard interne (exposé via Docker ou direct)
+  forward-headers-strategy: framework
 
 spring:
   application:
@@ -84,7 +85,7 @@ application:
     jwt:
       secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
   cors:
-    allowed-origins: "http://localhost:8081,http://localhost:8080"
+    allowed-origins: "https://organization-service.pynfi.com"
       
 # --- RESILIENCE (Circuit Breaker - Comme le Template) ---
 resilience4j:

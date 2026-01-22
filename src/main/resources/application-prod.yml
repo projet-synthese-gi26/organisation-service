@@ -32,3 +32,9 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+
+application:
+  cors:
+    # Autorise ton propre domaine pour que Swagger UI (JS) puisse appeler l'API
+    allowed-origins: "https://organization-service.pynfi.com"
