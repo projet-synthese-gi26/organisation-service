@@ -19,10 +19,6 @@ spring:
     user: ${DB_LIQUIBASE_USERNAME}
     password: ${DB_LIQUIBASE_PASSWORD}
     enabled: true
-    change-log: classpath:db/changelog/db.changelog-master.yaml
-    default-schema: ride_and_go
-    liquibase-schema: ride_and_go
-
   # ------------------------------------------------------------------
   # DATABASE — R2DBC réactif
   # ------------------------------------------------------------------
