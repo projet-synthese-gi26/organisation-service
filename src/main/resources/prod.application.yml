@@ -1,6 +1,15 @@
+server:
+  port: 8080 # Port standard interne (exposé via Docker ou direct)
+  forward-headers-strategy: framework
+
 spring:
   application:
     name: organization-service
+
+   # Désactive Docker Compose automatique (on gère l'infra manuellement ou via script)
+  docker:
+    compose:
+      enabled: false
 
   # ------------------------------------------------------------------
   # DATABASE — Liquibase
@@ -71,7 +80,7 @@ spring:
         org.apache.kafka.common.security.scram.ScramLoginModule required
         username="${KAFKA_BACKEND_USER}"
         password="${KAFKA_BACKEND_PASSWORD}";
-        
+
     consumer:
       group-id: organisation-group-prod
       auto-offset-reset: earliest
@@ -81,10 +90,51 @@ spring:
         spring.json.trusted.packages: "*"
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer 
 
+# --- MONITORING (Actuator - Comme le Template) ---
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 
+# --- SWAGGER (SpringDoc) ---
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    validator-url: none
+  use-fqn: true
+
+# --- CONFIGS MÉTIER ---
 application:
+  kafka:
+    topics:
+      crm-interactions: crm-interactions
+      organization-events: organization-events
+  
+  security:
+    jwt:
+      secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
   cors:
-    # Autorise ton propre domaine pour que Swagger UI (JS) puisse appeler l'API
     allowed-origins: "https://organization-service.pynfi.com"
+      
+# --- RESILIENCE (Circuit Breaker - Comme le Template) ---
+resilience4j:
+  circuitbreaker:
+    instances:
+      external-service: # Exemple générique
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+        slidingWindowSize: 5
+  
