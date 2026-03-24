@@ -123,7 +123,7 @@ application:
     jwt:
       secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
   cors:
-    allowed-origins: "https://organization-service.pynfi.com"
+    allowed-origins: "https://traefikdev.yowyob.com/organization"
       
 # --- RESILIENCE (Circuit Breaker - Comme le Template) ---
 resilience4j:
