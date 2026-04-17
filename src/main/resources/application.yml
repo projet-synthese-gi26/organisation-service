@@ -12,6 +12,12 @@ spring:
       enabled: false
 
   # --- DATABASE (Local) ---
+  liquibase:
+    url: jdbc:postgresql://localhost:5432/organisationdb
+    user: postgres
+    password: password
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
   r2dbc:
     url: r2dbc:postgresql://localhost:5432/organisationdb
     username: postgres
@@ -27,7 +33,7 @@ spring:
       validation-query: SELECT 1
   sql:
     init:
-      mode: always # Initialise la DB via schema.sql
+      mode: never # Désactive schema.sql car on utilise Liquibase
 
   # --- REDIS (Local - Standalone) ---
   data:
