@@ -2,6 +2,11 @@ server:
   port: 8080 # Port standard interne (exposé via Docker ou direct)
   forward-headers-strategy: framework
 
+# Config Swagger
+app:
+  swagger:
+    server-url: ${ORGANIZATION_SERVER_URL:https://traefikdev.yowyob.com/organization}
+
 spring:
   application:
     name: organisation-service
